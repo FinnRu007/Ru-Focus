@@ -10,6 +10,9 @@
 (function () {
   "use strict";
 
+  var LOG = "[YTSD]";
+  console.log(LOG, "Wiedergabe-Script aktiv auf", location.pathname);
+
   var D = typeof YTSD_DEFAULTS !== "undefined" ? YTSD_DEFAULTS : {};
   var settings = Object.assign({}, D);
 
@@ -33,6 +36,13 @@
 
   chrome.storage.sync.get(D, function (res) {
     settings = Object.assign({}, D, res);
+    console.log(
+      LOG,
+      "Einstellungen geladen – Dislikes:",
+      settings.showDislikes,
+      "| Auto-Übersetzung aus:",
+      settings.disableAutoTranslate
+    );
     pushToMain();
     tick();
   });
@@ -94,11 +104,17 @@
       dislikeCount[v] = null; // Platzhalter gegen Mehrfach-Abfragen
       try {
         chrome.runtime.sendMessage({ type: "ryd", videoId: v }, function (resp) {
+          if (chrome.runtime.lastError) {
+            console.warn(LOG, "Dislike-Abruf fehlgeschlagen:", chrome.runtime.lastError.message);
+          }
           dislikeCount[v] =
             resp && typeof resp.dislikes === "number" ? resp.dislikes : null;
+          console.log(LOG, "Dislikes für", v, "=", dislikeCount[v]);
           if (currentVideoId() === v) renderDislikes(v);
         });
-      } catch (e) {}
+      } catch (e) {
+        console.warn(LOG, "sendMessage-Fehler:", e);
+      }
       return;
     }
     renderDislikes(v);
@@ -130,7 +146,13 @@
     var n = dislikeCount[v];
     if (n === null || n === undefined) return;
     var btn = findDislikeButton();
-    if (!btn) return;
+    if (!btn) {
+      if (!renderDislikes._warned) {
+        console.warn(LOG, "Dislike-Button (noch) nicht gefunden – versuche es weiter");
+        renderDislikes._warned = true;
+      }
+      return;
+    }
 
     var label = compact(n);
     var txt = btn.querySelector(".ytsd-dislike-count");
@@ -156,6 +178,7 @@
       else btn.appendChild(txt);
     }
     txt.textContent = label;
+    console.log(LOG, "Dislike-Zahl eingeblendet:", label);
 
     var base = (btn.getAttribute("aria-label") || "").replace(
       /\s*\(?\d[\d.,\s]*\s*„?Mag.*$/,
