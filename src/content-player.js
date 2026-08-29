@@ -159,7 +159,8 @@
     if (
       btn.getAttribute("data-ytsd-vid") === v &&
       txt &&
-      txt.textContent === label
+      txt.textContent === label &&
+      document.contains(txt)
     ) {
       return; // schon aktuell
     }
@@ -167,18 +168,26 @@
 
     // Icon-only-Button in einen Button mit Text verwandeln
     btn.classList.remove("yt-spec-button-shape-next--icon-button");
+    btn.classList.remove("yt-spec-button-shape-next--enable-backdrop-filter-experiment");
     btn.style.width = "auto";
 
-    if (!txt) {
-      txt = document.createElement("div");
-      txt.className =
-        "yt-spec-button-shape-next__button-text-content ytsd-dislike-count";
-      var icon = btn.querySelector(".yt-spec-button-shape-next__icon");
-      if (icon) icon.insertAdjacentElement("afterend", txt);
-      else btn.appendChild(txt);
+    if (!txt || !document.contains(txt)) {
+      txt = document.createElement("span");
+      txt.className = "ytsd-dislike-count";
+      btn.appendChild(txt);
     }
     txt.textContent = label;
-    console.log(LOG, "Dislike-Zahl eingeblendet:", label);
+
+    var cs = window.getComputedStyle(txt);
+    console.log(
+      LOG,
+      "Dislike-Zahl eingeblendet:",
+      label,
+      "| display=" + cs.display,
+      "visibility=" + cs.visibility,
+      "fontSize=" + cs.fontSize,
+      "imDOM=" + document.contains(txt)
+    );
 
     var base = (btn.getAttribute("aria-label") || "").replace(
       /\s*\(?\d[\d.,\s]*\s*„?Mag.*$/,
@@ -230,7 +239,15 @@
 
   var st = document.createElement("style");
   st.textContent =
-    ".ytsd-dislike-count{margin-left:6px;display:inline-block !important;" +
-    "font-size:1.4rem;line-height:2rem;font-weight:500}";
+    ".ytsd-dislike-count{" +
+    "display:inline-flex !important;align-items:center;" +
+    "visibility:visible !important;opacity:1 !important;" +
+    "margin-left:6px;font-size:1.4rem;line-height:2.4rem;font-weight:500;" +
+    "white-space:nowrap;overflow:visible !important;max-width:none !important;" +
+    "color:var(--yt-spec-text-primary, currentColor)}" +
+    "button:has(> .ytsd-dislike-count),dislike-button-view-model," +
+    "dislike-button-view-model button,dislike-button-view-model .yt-spec-button-shape-next," +
+    "#segmented-dislike-button,#segmented-dislike-button button{" +
+    "width:auto !important;max-width:none !important;overflow:visible !important}";
   (document.head || document.documentElement).appendChild(st);
 })();
