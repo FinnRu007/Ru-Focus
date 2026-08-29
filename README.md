@@ -14,9 +14,11 @@ hilft:
   Aufruf auf eine Hinweisseite umgeleitet. Von dort lässt sich eine Seite bei
   Bedarf für 10 Minuten freischalten.
 - **Cookie-Banner automatisch ablehnen** – versucht auf jeder Website, alle
-  optionalen Cookies abzulehnen (über die Buttons der gängigen Consent-Tools
-  wie OneTrust, Cookiebot, Didomi, Usercentrics, Quantcast … und zusätzlich
-  über einen Text-Abgleich).
+  optionalen Cookies abzulehnen: über die Buttons der gängigen Consent-Tools
+  (OneTrust, Cookiebot, Didomi, Usercentrics, Sourcepoint, Quantcast, TrustArc,
+  Osano, CookieYes …), auch wenn diese in einem offenen Shadow-DOM oder in einem
+  iframe stecken, und zusätzlich über einen Text-Abgleich. Klappt nicht bei
+  jedem Anbieter, deckt aber die meisten großen Seiten ab.
 
 Jede Funktion lässt sich einzeln an- und abschalten – schnell über das
 Symbol-Popup, ausführlich über die Optionsseite.

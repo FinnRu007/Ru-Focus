@@ -2,9 +2,14 @@
    Content-Script für alle Websites
    ------------------------------------------------------------
    Versucht, Cookie-/Consent-Banner automatisch so zu bedienen,
-   dass alle optionalen Cookies abgelehnt werden. Erst über
-   bekannte Buttons der großen Consent-Tools, danach über einen
-   Text-Abgleich innerhalb erkennbarer Cookie-Dialoge.
+   dass alle optionalen Cookies abgelehnt werden.
+
+   Vorgehen:
+   1. bekannte "Ablehnen"-Buttons der großen Consent-Tools
+      (auch in offenen Shadow-DOMs, z. B. Usercentrics)
+   2. Text-Abgleich: eindeutige Formulierungen überall,
+      schwächere nur innerhalb eines erkennbaren Consent-Dialogs
+   Läuft in allen Frames (Sourcepoint, Quantcast … laufen im iframe).
    ============================================================ */
 
 (function () {
@@ -23,70 +28,94 @@
     if (window.__ytsdCookieRan) return;
     window.__ytsdCookieRan = true;
 
-    // Bekannte "Ablehnen"-Buttons der verbreiteten Consent-Management-Tools.
+    // Bekannte "alle ablehnen"-Buttons der verbreiteten Consent-Tools.
     var SELECTORS = [
+      // OneTrust
       "#onetrust-reject-all-handler",
+      "button.ot-pc-refuse-all-handler",
       ".ot-pc-refuse-all-handler",
+      // Cookiebot
       "#CybotCookiebotDialogBodyButtonDecline",
       "#CybotCookiebotDialogBodyLevelButtonLevelOptinDeclineAll",
-      "#CybotCookiebotDialogBodyButtonBasicPreferenceAccept",
-      "button#didomi-notice-disagree-button",
-      ".didomi-continue-without-agreeing",
+      // Usercentrics (v2 / CMP – meist im Shadow-DOM #usercentrics-cmp-ui / #usercentrics-root)
+      "button.uc-deny-button",
+      "button#deny.uc-deny-button",
       'button[data-testid="uc-deny-all-button"]',
       'button[data-testid="uc-denyAll-button"]',
-      ".qc-cmp2-summary-buttons > button[mode='secondary']",
-      'button[aria-label="REJECT ALL"]',
+      "#uc-btn-deny-banner",
+      // Sourcepoint (BBC, SPIEGEL, BILD, WELT …) – meist <iframe src=*privacy-mgmt*>
+      "button.sp_choice_type_13",
+      "button.sp_choice_type_REJECT_ALL",
+      'button[title="Reject All"]',
+      'button[title="Disagree"]',
+      'button[title="Do not agree"]',
+      'button[aria-label*="do not agree" i]',
+      'button[aria-label*="reject all" i]',
+      // Didomi
+      "button#didomi-notice-disagree-button",
+      ".didomi-continue-without-agreeing",
+      // Quantcast
+      '.qc-cmp2-summary-buttons > button[mode="secondary"]',
+      // weitere Tools
       ".osano-cm-denyAll",
       ".cky-btn-reject",
       ".cmplz-deny",
       "._brlbs-btn-refuse",
       "a.brlbs-refuse-btn",
-      '[data-tid="banner-decline"]',
       ".truste-button2",
-      "#truste-consent-required",
       "button.iubenda-cs-reject-btn",
+      '[data-tid="banner-decline"]',
       ".fc-cta-do-not-consent",
-      ".fc-button.fc-cta-do-not-consent",
-      "button.sp_choice_type_REJECT_ALL",
-      'button[title="Reject All"]',
-      'button[aria-label="Reject all"]',
-      'button[aria-label="Alle ablehnen"]',
-      'button[aria-label="Alles ablehnen"]'
+      // generische ARIA/Title-Varianten
+      'button[aria-label="Reject all" i]',
+      'button[aria-label="Deny all" i]',
+      'button[aria-label="Alle ablehnen" i]',
+      'button[aria-label="Alles ablehnen" i]',
+      'button[aria-label="Ablehnen" i]'
     ];
 
-    // Text-Varianten (nur innerhalb erkennbarer Cookie-Dialoge angewendet).
-    var TEXTS = [
+    // Eindeutige Formulierungen – dürfen überall geklickt werden.
+    var STRONG = [
       "reject all",
+      "reject all cookies",
       "reject non-essential",
       "reject unnecessary",
       "decline all",
-      "decline optional",
-      "decline cookies",
-      "necessary cookies only",
-      "only necessary",
-      "use necessary cookies only",
-      "essential only",
+      "deny all",
+      "i do not agree",
+      "do not agree",
       "continue without accepting",
       "do not consent",
+      "only necessary",
+      "only necessary cookies",
+      "necessary cookies only",
+      "use necessary cookies only",
+      "essential only",
+      "only essential cookies",
+      "reject additional cookies",
       "alle ablehnen",
       "alles ablehnen",
-      "ablehnen",
       "alle cookies ablehnen",
+      "auswahl ablehnen",
       "nur notwendige",
       "nur notwendige cookies",
       "nur erforderliche",
+      "nur erforderliche cookies",
       "nur essenzielle cookies",
-      "auswahl ablehnen",
+      "nur essentielle cookies",
       "ohne einwilligung fortfahren",
+      "weiter ohne einwilligung",
       "weiter ohne zustimmung",
       "tout refuser",
-      "refuser",
       "continuer sans accepter",
-      "rechazar",
-      "rechazar todo"
+      "rechazar todo",
+      "rifiuta tutto"
     ];
 
-    var CONTEXT = [
+    // Schwache Formulierungen – nur innerhalb eines erkennbaren Consent-Dialogs.
+    var WEAK = ["ablehnen", "decline", "reject", "disagree", "refuser", "rechazar"];
+
+    var CONTEXT_SEL = [
       '[id*="cookie" i]',
       '[class*="cookie" i]',
       '[id*="consent" i]',
@@ -95,39 +124,53 @@
       '[class*="gdpr" i]',
       '[id*="cmp" i]',
       '[class*="cmp" i]',
+      '[id*="usercentrics" i]',
+      '[class*="usercentrics" i]',
       '[aria-label*="cookie" i]',
-      '[id*="privacy" i][role="dialog"]',
-      '[class*="privacy" i][class*="banner" i]'
+      '[id*="privacy" i][role="dialog"]'
     ].join(",");
 
-    var tries = 0;
-    var timer = setInterval(tick, 850);
-    tick();
-    setTimeout(function () {
-      clearInterval(timer);
-    }, 13000);
+    // Läuft die Seite selbst als CMP (iframe eines Consent-Tools)?
+    var CMP_HOST =
+      /(^|\.)(privacy-mgmt\.com|consensu\.org|onetrust\.com|cookiebot\.com|usercentrics\.eu|didomi\.io|trustarc\.com|cookie-script\.com|iubenda\.com)$/i.test(
+        location.hostname
+      ) || /sp_message|consent|cmp/i.test(location.pathname);
 
-    function tick() {
-      tries++;
-      if (tries > 14) {
-        clearInterval(timer);
-        return;
-      }
-      try {
-        if (clickSelectors() || clickByText()) {
-          clearInterval(timer);
+    /* ---------- DOM-Helfer (inkl. offener Shadow-DOMs) ---------- */
+
+    function allRoots() {
+      var roots = [document];
+      var stack = [document];
+      while (stack.length) {
+        var r = stack.pop();
+        var els = r.querySelectorAll("*");
+        for (var i = 0; i < els.length; i++) {
+          if (els[i].shadowRoot) {
+            roots.push(els[i].shadowRoot);
+            stack.push(els[i].shadowRoot);
+          }
         }
-      } catch (e) {
-        /* einzelne Seiten mit exotischem DOM ignorieren */
       }
+      return roots;
     }
 
-    function isVisible(el) {
+    function queryAll(selector, roots) {
+      var out = [];
+      for (var i = 0; i < roots.length; i++) {
+        try {
+          out.push.apply(out, roots[i].querySelectorAll(selector));
+        } catch (e) {
+          /* ungültiger Selektor in diesem Browser – überspringen */
+        }
+      }
+      return out;
+    }
+
+    function visible(el) {
       if (!el) return false;
       var r = el.getBoundingClientRect();
       if (r.width < 2 || r.height < 2) return false;
-      var view = el.ownerDocument.defaultView || window;
-      var st = view.getComputedStyle(el);
+      var st = window.getComputedStyle(el);
       return (
         st.visibility !== "hidden" &&
         st.display !== "none" &&
@@ -136,50 +179,95 @@
       );
     }
 
-    function clickSelectors() {
-      for (var i = 0; i < SELECTORS.length; i++) {
-        var el;
+    function norm(s) {
+      return (s || "").replace(/\s+/g, " ").trim().toLowerCase();
+    }
+
+    function inContext(el) {
+      var node = el;
+      for (var i = 0; i < 12 && node; i++) {
         try {
-          el = document.querySelector(SELECTORS[i]);
+          if (node.matches && node.matches(CONTEXT_SEL)) return true;
         } catch (e) {
-          continue;
+          return false;
         }
-        if (el && isVisible(el)) {
-          el.click();
-          return true;
+        node =
+          node.parentElement ||
+          (node.getRootNode && node.getRootNode() && node.getRootNode().host) ||
+          null;
+      }
+      return false;
+    }
+
+    /* ---------- Klick-Strategien ---------- */
+
+    function clickKnown(roots) {
+      for (var i = 0; i < SELECTORS.length; i++) {
+        var found = queryAll(SELECTORS[i], roots);
+        for (var j = 0; j < found.length; j++) {
+          if (visible(found[j])) {
+            found[j].click();
+            return true;
+          }
         }
       }
       return false;
     }
 
-    function clickByText() {
-      var containers = document.querySelectorAll(CONTEXT);
-      for (var i = 0; i < containers.length; i++) {
-        var box = containers[i];
-        if (!isVisible(box)) continue;
-
-        var btns = box.querySelectorAll(
-          'button,a,[role="button"],input[type="button"],input[type="submit"]'
-        );
-        for (var j = 0; j < btns.length; j++) {
-          var b = btns[j];
-          var t = (b.textContent || b.value || "")
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, " ");
-          if (!t || t.length > 42) continue;
-
-          for (var k = 0; k < TEXTS.length; k++) {
-            if (t === TEXTS[k] || t.indexOf(TEXTS[k]) !== -1) {
-              if (isVisible(b)) {
-                b.click();
-                return true;
-              }
+    function clickByText(roots) {
+      var btns = queryAll(
+        'button,a,[role="button"],input[type="button"],input[type="submit"]',
+        roots
+      );
+      for (var pass = 0; pass < 2; pass++) {
+        var list = pass === 0 ? STRONG : WEAK;
+        for (var i = 0; i < btns.length; i++) {
+          var b = btns[i];
+          var t = norm(b.textContent || b.value || b.getAttribute("aria-label"));
+          if (!t || t.length > 45) continue;
+          for (var k = 0; k < list.length; k++) {
+            if (t === list[k] || t.indexOf(list[k]) !== -1) {
+              if (!visible(b)) continue;
+              if (pass === 1 && !CMP_HOST && !inContext(b)) continue;
+              b.click();
+              return true;
             }
           }
         }
       }
       return false;
+    }
+
+    /* ---------- Wiederholte Versuche ---------- */
+
+    var tries = 0;
+    var timer = setInterval(tick, 800);
+    tick();
+    setTimeout(function () {
+      clearInterval(timer);
+    }, 15000);
+
+    function tick() {
+      tries++;
+      if (tries > 18) {
+        clearInterval(timer);
+        return;
+      }
+      try {
+        var roots = allRoots();
+        if (clickKnown(roots) || clickByText(roots)) {
+          // Manche Banner haben eine zweite Ebene – noch einmal nachfassen.
+          setTimeout(function () {
+            try {
+              var r2 = allRoots();
+              if (!clickKnown(r2)) clickByText(r2);
+            } catch (e) {}
+          }, 700);
+          clearInterval(timer);
+        }
+      } catch (e) {
+        /* exotisches DOM – nächster Versuch */
+      }
     }
   }
 })();
