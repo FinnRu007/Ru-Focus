@@ -69,13 +69,13 @@
   function tick() {
     var v = currentVideoId();
     if (!v) return;
-    if (settings.showDislikes) injectDislikes(v);
+    if (settings.showDislikes) updateDislikes(v);
     if (settings.disableAutoTranslate) fixTitle(v);
   }
 
   /* ---------- Dislike-Zahl ---------- */
 
-  var dislikeCache = {};
+  var dislikeCount = {}; // videoId -> Zahl | null
 
   function compact(n) {
     try {
@@ -88,51 +88,80 @@
     }
   }
 
-  function injectDislikes(v) {
-    var btn = document.querySelector(
-      "ytd-watch-metadata dislike-button-view-model button, " +
-        "dislike-button-view-model button, " +
-        "#segmented-dislike-button button, " +
-        "ytd-toggle-button-renderer#dislike-button button, " +
-        'button[aria-label*="Dislike" i], ' +
-        'button[aria-label*="Mag ich nicht" i]'
-    );
-    if (!btn) return;
-    if (btn.getAttribute("data-ytsd-vid") === v) return;
-
-    var n = dislikeCache[v];
+  function updateDislikes(v) {
+    var n = dislikeCount[v];
     if (n === undefined) {
-      dislikeCache[v] = null; // verhindert parallele Mehrfach-Abfragen
-      fetch(
-        "https://returnyoutubedislikeapi.com/votes?videoId=" +
-          encodeURIComponent(v)
-      )
-        .then(function (r) {
-          return r.ok ? r.json() : null;
-        })
-        .then(function (d) {
-          dislikeCache[v] =
-            d && typeof d.dislikes === "number" ? d.dislikes : null;
-        })
-        .catch(function () {});
+      dislikeCount[v] = null; // Platzhalter gegen Mehrfach-Abfragen
+      try {
+        chrome.runtime.sendMessage({ type: "ryd", videoId: v }, function (resp) {
+          dislikeCount[v] =
+            resp && typeof resp.dislikes === "number" ? resp.dislikes : null;
+          if (currentVideoId() === v) renderDislikes(v);
+        });
+      } catch (e) {}
       return;
     }
-    if (n === null) return;
+    renderDislikes(v);
+  }
 
-    btn.setAttribute("data-ytsd-vid", v);
-    var label = compact(n);
-    var txt = btn.querySelector(
-      ".yt-spec-button-shape-next__button-text-content"
+  function findDislikeButton() {
+    var host = document.querySelector(
+      "ytd-watch-metadata dislike-button-view-model, " +
+        "dislike-button-view-model, " +
+        "#segmented-dislike-button, " +
+        "ytd-toggle-button-renderer#dislike-button, " +
+        'segmented-like-dislike-button-view-model button[aria-label*="islike"]'
     );
+    if (!host) {
+      // Fallback: das zweite Segment neben dem Like-Button
+      var seg = document.querySelector(
+        "segmented-like-dislike-button-view-model, ytd-segmented-like-dislike-button-renderer"
+      );
+      if (seg) {
+        var btns = seg.querySelectorAll("button");
+        if (btns.length >= 2) return btns[1];
+      }
+      return null;
+    }
+    return host.tagName === "BUTTON" ? host : host.querySelector("button");
+  }
+
+  function renderDislikes(v) {
+    var n = dislikeCount[v];
+    if (n === null || n === undefined) return;
+    var btn = findDislikeButton();
+    if (!btn) return;
+
+    var label = compact(n);
+    var txt = btn.querySelector(".ytsd-dislike-count");
+    if (
+      btn.getAttribute("data-ytsd-vid") === v &&
+      txt &&
+      txt.textContent === label
+    ) {
+      return; // schon aktuell
+    }
+    btn.setAttribute("data-ytsd-vid", v);
+
+    // Icon-only-Button in einen Button mit Text verwandeln
+    btn.classList.remove("yt-spec-button-shape-next--icon-button");
+    btn.style.width = "auto";
+
     if (!txt) {
       txt = document.createElement("div");
-      txt.className = "yt-spec-button-shape-next__button-text-content";
-      btn.appendChild(txt);
+      txt.className =
+        "yt-spec-button-shape-next__button-text-content ytsd-dislike-count";
+      var icon = btn.querySelector(".yt-spec-button-shape-next__icon");
+      if (icon) icon.insertAdjacentElement("afterend", txt);
+      else btn.appendChild(txt);
     }
     txt.textContent = label;
-    txt.classList.add("ytsd-dislike-count");
-    btn.style.width = "auto";
-    btn.setAttribute("aria-label", label + " „Mag ich nicht“-Angaben");
+
+    var base = (btn.getAttribute("aria-label") || "").replace(
+      /\s*\(?\d[\d.,\s]*\s*„?Mag.*$/,
+      ""
+    );
+    btn.setAttribute("aria-label", (base || "Mag ich nicht") + " – " + label);
   }
 
   /* ---------- übersetzten Titel zurücksetzen ---------- */
@@ -178,6 +207,7 @@
 
   var st = document.createElement("style");
   st.textContent =
-    ".ytsd-dislike-count{margin-left:6px;display:inline-block !important}";
+    ".ytsd-dislike-count{margin-left:6px;display:inline-block !important;" +
+    "font-size:1.4rem;line-height:2rem;font-weight:500}";
   (document.head || document.documentElement).appendChild(st);
 })();

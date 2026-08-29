@@ -120,6 +120,24 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     rebuildRules().then(() => sendResponse({ ok: true }));
     return true;
   }
+
+  // Dislike-Zahl abrufen – im Service-Worker, damit keine CORS-/CSP-Grenzen
+  // der YouTube-Seite im Weg stehen.
+  if (msg.type === "ryd" && msg.videoId) {
+    fetch(
+      "https://returnyoutubedislikeapi.com/votes?videoId=" +
+        encodeURIComponent(msg.videoId)
+    )
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        sendResponse({
+          dislikes: d && typeof d.dislikes === "number" ? d.dislikes : null,
+          likes: d && typeof d.likes === "number" ? d.likes : null
+        });
+      })
+      .catch(() => sendResponse({ dislikes: null }));
+    return true;
+  }
 });
 
 /* ---------- Auslöser ---------- */
