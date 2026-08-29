@@ -145,38 +145,53 @@
   function renderDislikes(v) {
     var n = dislikeCount[v];
     if (n === null || n === undefined) return;
+
+    // Anker = die komplette Like/Dislike-Pille (bzw. der Dislike-Container).
+    // Die Zahl wird NEBEN die Pille gesetzt, nicht in den Button – der
+    // Button schneidet zusätzlichen Text sonst ab.
     var btn = findDislikeButton();
-    if (!btn) {
+    var anchor =
+      document.querySelector(
+        "ytd-watch-metadata segmented-like-dislike-button-view-model, " +
+          "ytd-watch-metadata ytd-segmented-like-dislike-button-renderer, " +
+          "segmented-like-dislike-button-view-model, " +
+          "ytd-segmented-like-dislike-button-renderer"
+      ) ||
+      (btn &&
+        btn.closest(
+          "dislike-button-view-model, #segmented-dislike-button, ytd-toggle-button-renderer#dislike-button"
+        )) ||
+      btn;
+
+    if (!anchor || !anchor.parentElement) {
       if (!renderDislikes._warned) {
-        console.warn(LOG, "Dislike-Button (noch) nicht gefunden – versuche es weiter");
+        console.warn(LOG, "Dislike-Bereich (noch) nicht gefunden – versuche es weiter");
         renderDislikes._warned = true;
       }
       return;
     }
 
     var label = compact(n);
-    var txt = btn.querySelector(".ytsd-dislike-count");
+    var host = anchor.parentElement;
+    var txt = host.querySelector(":scope > .ytsd-dislike-count");
+
     if (
-      btn.getAttribute("data-ytsd-vid") === v &&
       txt &&
       txt.textContent === label &&
-      document.contains(txt)
+      txt.previousElementSibling === anchor
     ) {
-      return; // schon aktuell
+      return; // schon korrekt platziert
     }
-    btn.setAttribute("data-ytsd-vid", v);
 
-    // Icon-only-Button in einen Button mit Text verwandeln
-    btn.classList.remove("yt-spec-button-shape-next--icon-button");
-    btn.classList.remove("yt-spec-button-shape-next--enable-backdrop-filter-experiment");
-    btn.style.width = "auto";
-
-    if (!txt || !document.contains(txt)) {
+    if (!txt) {
       txt = document.createElement("span");
       txt.className = "ytsd-dislike-count";
-      btn.appendChild(txt);
+      txt.title = "Dislikes – Schätzung von returnyoutubedislike.com";
     }
     txt.textContent = label;
+    if (anchor.nextElementSibling !== txt) {
+      anchor.insertAdjacentElement("afterend", txt);
+    }
 
     var cs = window.getComputedStyle(txt);
     console.log(
@@ -186,14 +201,9 @@
       "| display=" + cs.display,
       "visibility=" + cs.visibility,
       "fontSize=" + cs.fontSize,
-      "imDOM=" + document.contains(txt)
+      "imDOM=" + document.contains(txt),
+      "anker=" + anchor.tagName.toLowerCase()
     );
-
-    var base = (btn.getAttribute("aria-label") || "").replace(
-      /\s*\(?\d[\d.,\s]*\s*„?Mag.*$/,
-      ""
-    );
-    btn.setAttribute("aria-label", (base || "Mag ich nicht") + " – " + label);
   }
 
   /* ---------- übersetzten Titel zurücksetzen ---------- */
@@ -240,14 +250,11 @@
   var st = document.createElement("style");
   st.textContent =
     ".ytsd-dislike-count{" +
-    "display:inline-flex !important;align-items:center;" +
+    "display:inline-flex !important;align-items:center;align-self:center;" +
     "visibility:visible !important;opacity:1 !important;" +
-    "margin-left:6px;font-size:1.4rem;line-height:2.4rem;font-weight:500;" +
-    "white-space:nowrap;overflow:visible !important;max-width:none !important;" +
-    "color:var(--yt-spec-text-primary, currentColor)}" +
-    "button:has(> .ytsd-dislike-count),dislike-button-view-model," +
-    "dislike-button-view-model button,dislike-button-view-model .yt-spec-button-shape-next," +
-    "#segmented-dislike-button,#segmented-dislike-button button{" +
-    "width:auto !important;max-width:none !important;overflow:visible !important}";
+    "flex:0 0 auto;margin:0 4px 0 8px;padding:0;" +
+    "font-family:'Roboto',Arial,sans-serif;font-size:1.4rem;line-height:2rem;" +
+    "font-weight:500;white-space:nowrap;" +
+    "color:var(--yt-spec-text-primary, currentColor)}";
   (document.head || document.documentElement).appendChild(st);
 })();
