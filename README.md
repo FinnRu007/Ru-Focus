@@ -10,6 +10,18 @@ hilft:
 - **Playables ausblenden** – blendet die YouTube-Spiele aus.
 - **Umfragen & Hinweise ausblenden** – Umfragen, Feedback-Abfragen und
   „Nudge“-Einblendungen im Feed.
+- **Dislikes anzeigen** – blendet die „Mag ich nicht“-Zahl am Video wieder ein.
+  Daten von [returnyoutubedislike.com](https://returnyoutubedislike.com) –
+  eine Schätzung auf Basis öffentlich verfügbarer Daten, keine exakten Zahlen.
+- **Automatische Übersetzung deaktivieren** – setzt automatisch übersetzte
+  Video-Titel zurück auf das Original (via oEmbed) und schaltet – sofern der
+  Player das zulässt – die automatisch gewählte übersetzte Audiospur zurück auf
+  den Originalton.
+- **Keine automatischen Untertitel** – schaltet automatisch eingeblendete
+  Untertitel beim Videostart ab. Manuelles Einschalten bleibt möglich.
+- **Startlautstärke festlegen** – Regler in den Optionen (0–100 %). Jede neue
+  Wiedergabe startet mit dieser Lautstärke. Standardmäßig aus – dann ändert die
+  Erweiterung nichts an der Lautstärke.
 - **Website-Blocker** – frei wählbare Domains (z. B. `instagram.com`) werden beim
   Aufruf auf eine Hinweisseite umgeleitet. Von dort lässt sich eine Seite bei
   Bedarf für 10 Minuten freischalten.
@@ -56,6 +68,10 @@ background.js            Service-Worker: baut die Blockregeln (declarativeNetReq
 src/
   defaults.js            Standard-Einstellungen (in jeden Kontext geladen)
   content-youtube.js     blendet Shorts/Playables/Umfragen aus, leitet Shorts um
+  content-player.js      Dislike-Zahl + Titel-Übersetzung rückgängig (isoliert)
+  player-main.js         Startlautstärke / Auto-Untertitel / Audiospur
+                         (läuft in der Seite, world: MAIN – nur so ist die
+                         YouTube-Player-API erreichbar)
   content-cookies.js     lehnt Cookie-Banner ab
 ui/
   popup.*                Symbol-Popup
@@ -71,10 +87,12 @@ icons/                   16 / 32 / 48 / 128 px
 | `storage` | Einstellungen speichern |
 | `declarativeNetRequest` | gesperrte Domains auf die Hinweisseite umleiten |
 | `alarms` | die 10-Minuten-Freischaltung nach Ablauf zurücksetzen |
-| `host_permissions: <all_urls>` | Shorts-Ausblenden auf YouTube und Cookie-Banner auf beliebigen Seiten |
+| `host_permissions: <all_urls>` | Shorts auf YouTube, Cookie-Banner auf beliebigen Seiten, Abruf der Dislike-Zahl von `returnyoutubedislikeapi.com` |
 
-Die Erweiterung sendet keinerlei Daten nach außen – es gibt kein Backend, kein
-Tracking, keine Analytics.
+Die Erweiterung sendet keine personenbezogenen Daten. Einzige ausgehende Anfrage:
+bei aktivierter Dislike-Anzeige wird die Video-ID an
+`returnyoutubedislikeapi.com` geschickt, um die Dislike-Zahl abzurufen. Kein
+eigenes Backend, kein Tracking, keine Analytics.
 
 ## Lizenz
 

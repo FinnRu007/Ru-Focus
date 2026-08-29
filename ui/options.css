@@ -133,6 +133,25 @@
   text-decoration: underline;
 }
 
+/* ---------- Lautstärke-Regler ---------- */
+.volume-row {
+  align-items: center;
+}
+.volume-row.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.volume-row .label b {
+  font-weight: 600;
+}
+input[type="range"] {
+  flex: none;
+  width: 180px;
+  max-width: 55%;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
 .foot {
   display: flex;
   align-items: center;

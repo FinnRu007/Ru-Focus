@@ -15,8 +15,11 @@
   ];
 
   var toggles = Array.prototype.slice.call(
-    document.querySelectorAll("input[data-key]")
+    document.querySelectorAll('input[type="checkbox"][data-key]')
   );
+  var volumeSlider = document.getElementById("volumeSlider");
+  var volumeValue = document.getElementById("volumeValue");
+  var volumeRow = document.getElementById("volumeRow");
   var savedEl = document.getElementById("saved");
   var listEl = document.getElementById("blocklist");
   var quickEl = document.getElementById("quickAdd");
@@ -44,12 +47,21 @@
 
   /* ---------- Laden ---------- */
 
+  function syncVolumeUI() {
+    var v = parseInt(state.startVolume, 10);
+    if (isNaN(v)) v = 50;
+    volumeSlider.value = v;
+    volumeValue.textContent = v;
+    volumeRow.classList.toggle("is-disabled", !state.setStartVolume);
+  }
+
   chrome.storage.sync.get(D, function (res) {
     state = Object.assign({}, D, res);
     if (!Array.isArray(state.blocklist)) state.blocklist = [];
     toggles.forEach(function (t) {
       t.checked = !!state[t.dataset.key];
     });
+    syncVolumeUI();
     renderList();
     renderQuick();
   });
@@ -62,6 +74,7 @@
     toggles.forEach(function (t) {
       if (changes[t.dataset.key]) t.checked = !!state[t.dataset.key];
     });
+    if (changes.startVolume || changes.setStartVolume) syncVolumeUI();
     if (changes.blocklist) {
       if (!Array.isArray(state.blocklist)) state.blocklist = [];
       renderList();
@@ -77,7 +90,19 @@
       patch[t.dataset.key] = t.checked;
       state[t.dataset.key] = t.checked;
       chrome.storage.sync.set(patch, flashSaved);
+      if (t.dataset.key === "setStartVolume") syncVolumeUI();
     });
+  });
+
+  /* ---------- Lautstärke-Regler ---------- */
+
+  volumeSlider.addEventListener("input", function () {
+    volumeValue.textContent = volumeSlider.value;
+  });
+  volumeSlider.addEventListener("change", function () {
+    var v = Math.max(0, Math.min(100, parseInt(volumeSlider.value, 10) || 0));
+    state.startVolume = v;
+    chrome.storage.sync.set({ startVolume: v }, flashSaved);
   });
 
   /* ---------- Blockliste ---------- */

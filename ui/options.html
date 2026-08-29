@@ -75,6 +75,83 @@
       </section>
 
       <section class="card">
+        <h2>YouTube – Wiedergabe</h2>
+        <label class="row">
+          <span class="label"
+            ><b>Dislikes anzeigen</b
+            ><span
+              >Zeigt die Anzahl der „Mag ich nicht“-Angaben am Video. Daten von
+              <code>returnyoutubedislike.com</code> (Schätzung auf Basis
+              öffentlicher Daten).</span
+            ></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="showDislikes" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+        <label class="row">
+          <span class="label"
+            ><b>Automatische Übersetzung deaktivieren</b
+            ><span
+              >Setzt automatisch übersetzte Video-Titel zurück auf das Original
+              und schaltet – wo möglich – die übersetzte KI-Audiospur zurück auf
+              den Originalton.</span
+            ></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="disableAutoTranslate" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+        <label class="row">
+          <span class="label"
+            ><b>Keine automatischen Untertitel</b
+            ><span
+              >Schaltet automatisch eingeblendete Untertitel beim Videostart ab.
+              Manuelles Einschalten über die Untertitel-Schaltfläche bleibt
+              möglich.</span
+            ></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="disableAutoCaptions" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+        <label class="row">
+          <span class="label"
+            ><b>Startlautstärke festlegen</b
+            ><span
+              >Setzt jede neue Wiedergabe auf eine feste Lautstärke. Ist der
+              Schalter aus, ändert die Erweiterung die Lautstärke nicht.</span
+            ></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="setStartVolume" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+        <div class="row volume-row" id="volumeRow">
+          <span class="label"
+            ><b>Lautstärke: <span id="volumeValue">50</span>&nbsp;%</b></span
+          >
+          <input
+            type="range"
+            id="volumeSlider"
+            min="0"
+            max="100"
+            step="1"
+            value="50"
+            data-key="startVolume"
+          />
+        </div>
+      </section>
+
+      <section class="card">
         <h2>Cookie-Banner</h2>
         <label class="row">
           <span class="label"

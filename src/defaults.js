@@ -5,11 +5,18 @@
    ============================================================ */
 
 var YTSD_DEFAULTS = {
-  // YouTube
+  // YouTube – aufräumen
   hideShorts: true,        // Shorts-Regale und Shorts in Listen ausblenden
   redirectShorts: true,    // /shorts/<id> automatisch auf /watch?v=<id> umleiten
   hidePlayables: true,     // YouTube Playables (Spiele) ausblenden
   hideSurveys: true,       // Umfragen, Feedback- und "Nudge"-Einblendungen ausblenden
+
+  // YouTube – Wiedergabe
+  showDislikes: true,          // Dislike-Zahl am Video anzeigen (Quelle: returnyoutubedislike.com)
+  disableAutoTranslate: true,  // automatische Übersetzung von Titel/Audiospur rückgängig machen
+  disableAutoCaptions: true,   // keine automatisch eingeblendeten Untertitel
+  setStartVolume: false,       // Startlautstärke fest vorgeben
+  startVolume: 50,             // 0–100 (nur wirksam, wenn setStartVolume an ist)
 
   // Cookie-Banner
   autoRejectCookies: true, // Auf jeder Website versuchen, alle optionalen Cookies abzulehnen
