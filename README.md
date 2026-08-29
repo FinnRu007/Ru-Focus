@@ -27,8 +27,13 @@ Symbol-Popup, ausführlich über die Optionsseite.
    `git clone`.
 2. In Chrome `chrome://extensions` öffnen.
 3. Oben rechts den **Entwicklermodus** einschalten.
-4. **Entpackte Erweiterung laden** klicken und den entpackten Ordner
-   (der Ordner mit der `manifest.json`) auswählen.
+4. **Entpackte Erweiterung laden** klicken und den Ordner auswählen, in dem die
+   Datei `manifest.json` **direkt** liegt.
+
+> Fehler „Manifest-Datei fehlt oder ist nicht lesbar“? Dann wurde ein Ordner zu
+> weit oben ausgewählt. Nach dem Entpacken mit dem Windows-Explorer entsteht oft
+> ein Ordner im Ordner (`…/youtube-shorts-deaktivieren/youtube-shorts-deaktivieren/`).
+> Eine Ebene tiefer gehen, bis `manifest.json` direkt sichtbar ist.
 
 Funktioniert genauso in Edge, Brave und anderen Chromium-Browsern.
 
