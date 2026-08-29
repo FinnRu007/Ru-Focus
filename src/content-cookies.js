@@ -9,6 +9,10 @@
       (auch in offenen Shadow-DOMs, z. B. Usercentrics)
    2. Text-Abgleich: eindeutige Formulierungen überall,
       schwächere nur innerhalb eines erkennbaren Consent-Dialogs
+   3. mehrstufige Banner: gibt es auf der ersten Ebene kein
+      "Ablehnen", wird "Einstellungen verwalten" o. Ä. geklickt
+      und danach in der zweiten Ebene "Alle ablehnen" + ggf.
+      "Auswahl bestätigen"
    Läuft in allen Frames (Sourcepoint, Quantcast … laufen im iframe).
    ============================================================ */
 
@@ -95,6 +99,8 @@
       "reject additional cookies",
       "alle ablehnen",
       "alles ablehnen",
+      "alle ablehnen und schließen",
+      "ablehnen und schließen",
       "alle cookies ablehnen",
       "auswahl ablehnen",
       "nur notwendige",
@@ -115,6 +121,86 @@
     // Schwache Formulierungen – nur innerhalb eines erkennbaren Consent-Dialogs.
     var WEAK = ["ablehnen", "decline", "reject", "disagree", "refuser", "rechazar"];
 
+    // Ebene 2 öffnen ("Einstellungen verwalten" / "Manage options" …).
+    var MANAGE_SEL = [
+      "button.sp_choice_type_12",
+      ".sp_choice_type_12",
+      "#onetrust-pc-btn-handler",
+      ".ot-sdk-show-settings",
+      ".optanon-show-settings",
+      "#didomi-notice-learn-more-button",
+      'button[data-testid="uc-customize-button"]',
+      'button[data-testid="uc-more-button"]',
+      ".cky-btn-customize",
+      'button[aria-label*="manage options" i]',
+      'button[aria-label*="einstellungen verwalten" i]'
+    ];
+    // Als Teil-Text gesucht (aber nur innerhalb eines Consent-Dialogs).
+    var MANAGE_TXT = [
+      "einstellungen verwalten",
+      "einstellungen anpassen",
+      "cookies verwalten",
+      "cookie-einstellungen",
+      "cookie einstellungen",
+      "datenschutz-einstellungen",
+      "datenschutzeinstellungen",
+      "mehr optionen",
+      "weitere optionen",
+      "optionen verwalten",
+      "auswahl anpassen",
+      "individuelle einstellungen",
+      "einstellungen ändern",
+      "zwecke anzeigen",
+      "manage settings",
+      "manage options",
+      "manage choices",
+      "manage my choices",
+      "manage preferences",
+      "manage cookies",
+      "manage my cookies",
+      "manage consent",
+      "customize",
+      "customise",
+      "more options",
+      "cookie settings",
+      "privacy settings",
+      "let me choose",
+      "more choices",
+      "gérer les options",
+      "personnaliser",
+      "configurar",
+      "gestisci opzioni"
+    ];
+
+    // Ebene 2 abschließen ("Auswahl bestätigen" / "Confirm my choices" …).
+    var CONFIRM_SEL = [
+      "button.sp_choice_type_SAVE_AND_EXIT",
+      ".sp_choice_type_SAVE_AND_EXIT",
+      ".save-preference-btn-handler",
+      'button[data-testid="uc-save-button"]',
+      ".qc-cmp2-save-and-exit"
+    ];
+    var CONFIRM_TXT = [
+      "auswahl bestätigen",
+      "auswahl speichern",
+      "einstellungen speichern",
+      "meine auswahl bestätigen",
+      "speichern und schließen",
+      "speichern & schließen",
+      "speichern und beenden",
+      "bestätigen und fortfahren",
+      "confirm my choices",
+      "confirm choices",
+      "save choices",
+      "save my choices",
+      "save and exit",
+      "save & exit",
+      "save preferences",
+      "save and close",
+      "confirmer mes choix",
+      "enregistrer mes choix"
+    ];
+
     var CONTEXT_SEL = [
       '[id*="cookie" i]',
       '[class*="cookie" i]',
@@ -127,14 +213,17 @@
       '[id*="usercentrics" i]',
       '[class*="usercentrics" i]',
       '[aria-label*="cookie" i]',
-      '[id*="privacy" i][role="dialog"]'
+      '[id*="privacy" i][role="dialog"]',
+      '[class*="privacy" i][class*="banner" i]',
+      '[class*="qc-cmp" i]',
+      '[class*="message-component" i]'
     ].join(",");
 
     // Läuft die Seite selbst als CMP (iframe eines Consent-Tools)?
     var CMP_HOST =
       /(^|\.)(privacy-mgmt\.com|consensu\.org|onetrust\.com|cookiebot\.com|usercentrics\.eu|didomi\.io|trustarc\.com|cookie-script\.com|iubenda\.com)$/i.test(
         location.hostname
-      ) || /sp_message|consent|cmp/i.test(location.pathname);
+      ) || /sp_message|sp_privacy|consent|cmp/i.test(location.pathname);
 
     /* ---------- DOM-Helfer (inkl. offener Shadow-DOMs) ---------- */
 
@@ -201,17 +290,41 @@
 
     /* ---------- Klick-Strategien ---------- */
 
-    function clickKnown(roots) {
-      for (var i = 0; i < SELECTORS.length; i++) {
-        var found = queryAll(SELECTORS[i], roots);
+    function clickBySelectors(list, roots, needContext) {
+      for (var i = 0; i < list.length; i++) {
+        var found = queryAll(list[i], roots);
         for (var j = 0; j < found.length; j++) {
-          if (visible(found[j])) {
-            found[j].click();
+          if (!visible(found[j])) continue;
+          if (needContext && !CMP_HOST && !inContext(found[j])) continue;
+          found[j].click();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // mode "exact": t === phrase | mode "sub": t enthält phrase
+    function clickByText2(list, roots, mode) {
+      var btns = queryAll('button,a,[role="button"]', roots);
+      for (var i = 0; i < btns.length; i++) {
+        var b = btns[i];
+        var t = norm(b.textContent || b.getAttribute("aria-label"));
+        if (!t || t.length > 48) continue;
+        for (var k = 0; k < list.length; k++) {
+          var hit = mode === "sub" ? t.indexOf(list[k]) !== -1 : t === list[k];
+          if (hit) {
+            if (!visible(b)) continue;
+            if (!CMP_HOST && !inContext(b)) continue;
+            b.click();
             return true;
           }
         }
       }
       return false;
+    }
+
+    function clickKnown(roots) {
+      return clickBySelectors(SELECTORS, roots, false);
     }
 
     function clickByText(roots) {
@@ -238,33 +351,54 @@
       return false;
     }
 
+    function clickManage(roots) {
+      return (
+        clickBySelectors(MANAGE_SEL, roots, true) ||
+        clickByText2(MANAGE_TXT, roots, "sub")
+      );
+    }
+
+    function clickConfirm(roots) {
+      return (
+        clickBySelectors(CONFIRM_SEL, roots, true) ||
+        clickByText2(CONFIRM_TXT, roots, "exact")
+      );
+    }
+
     /* ---------- Wiederholte Versuche ---------- */
 
     var tries = 0;
+    var panelOpened = false;
+    var rejectClicked = false;
+    var ticksSinceReject = 0;
     var timer = setInterval(tick, 800);
     tick();
-    setTimeout(function () {
+    setTimeout(stop, 24000);
+
+    function stop() {
       clearInterval(timer);
-    }, 15000);
+    }
 
     function tick() {
       tries++;
-      if (tries > 18) {
-        clearInterval(timer);
-        return;
-      }
+      if (tries > 30) return stop();
       try {
         var roots = allRoots();
-        if (clickKnown(roots) || clickByText(roots)) {
-          // Manche Banner haben eine zweite Ebene – noch einmal nachfassen.
-          setTimeout(function () {
-            try {
-              var r2 = allRoots();
-              if (!clickKnown(r2)) clickByText(r2);
-            } catch (e) {}
-          }, 700);
-          clearInterval(timer);
+
+        if (!rejectClicked) {
+          if (clickKnown(roots) || clickByText(roots)) {
+            rejectClicked = true;
+            ticksSinceReject = 0;
+          } else if (!panelOpened && clickManage(roots)) {
+            panelOpened = true; // nächste Ticks fangen "Alle ablehnen" in Ebene 2
+          }
+          return;
         }
+
+        // Ablehnen ist erfolgt – bei mehrstufigen Panels noch bestätigen.
+        ticksSinceReject++;
+        if (clickConfirm(roots)) return stop();
+        if (ticksSinceReject >= 6) stop();
       } catch (e) {
         /* exotisches DOM – nächster Versuch */
       }

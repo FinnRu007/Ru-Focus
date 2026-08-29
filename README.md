@@ -29,8 +29,11 @@ hilft:
   optionalen Cookies abzulehnen: über die Buttons der gängigen Consent-Tools
   (OneTrust, Cookiebot, Didomi, Usercentrics, Sourcepoint, Quantcast, TrustArc,
   Osano, CookieYes …), auch wenn diese in einem offenen Shadow-DOM oder in einem
-  iframe stecken, und zusätzlich über einen Text-Abgleich. Klappt nicht bei
-  jedem Anbieter, deckt aber die meisten großen Seiten ab.
+  iframe stecken, und zusätzlich über einen Text-Abgleich. Hat ein Banner auf
+  der ersten Ebene kein „Ablehnen", öffnet die Erweiterung „Einstellungen
+  verwalten" und lehnt dann in der zweiten Ebene alles ab (inkl. „Auswahl
+  bestätigen"). Klappt nicht bei jedem Anbieter, deckt aber die meisten großen
+  Seiten ab.
 
 Jede Funktion lässt sich einzeln an- und abschalten – schnell über das
 Symbol-Popup, ausführlich über die Optionsseite.
