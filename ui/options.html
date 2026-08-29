@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="ui.css" />
+    <link rel="stylesheet" href="options.css" />
+    <title>Einstellungen – YouTube Shorts deaktivieren</title>
+  </head>
+  <body>
+    <main class="page">
+      <header class="head">
+        <div class="brand">
+          <img src="../icons/icon48.png" alt="" />
+          <span class="title">YouTube Shorts deaktivieren</span>
+        </div>
+        <span id="saved" class="saved">Gespeichert</span>
+      </header>
+
+      <section class="card">
+        <h2>YouTube</h2>
+        <label class="row">
+          <span class="label"
+            ><b>Shorts ausblenden</b
+            ><span
+              >Entfernt Shorts-Regale auf der Startseite, in den Abos, in der
+              Suche und im Seitenmenü.</span
+            ></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="hideShorts" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+        <label class="row">
+          <span class="label"
+            ><b>Shorts-Links umleiten</b
+            ><span
+              >Öffnet <code>youtube.com/shorts/…</code> automatisch im normalen
+              Videoplayer.</span
+            ></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="redirectShorts" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+        <label class="row">
+          <span class="label"
+            ><b>Playables ausblenden</b
+            ><span>Blendet die YouTube-Spiele (Playables) aus.</span></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="hidePlayables" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+        <label class="row">
+          <span class="label"
+            ><b>Umfragen &amp; Hinweise ausblenden</b
+            ><span
+              >Blendet Umfragen, Feedback-Abfragen und „Nudge“-Einblendungen im
+              Feed aus.</span
+            ></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="hideSurveys" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+      </section>
+
+      <section class="card">
+        <h2>Cookie-Banner</h2>
+        <label class="row">
+          <span class="label"
+            ><b>Cookie-Banner automatisch ablehnen</b
+            ><span
+              >Versucht auf jeder Website, alle optionalen Cookies abzulehnen –
+              über die Buttons der gängigen Consent-Tools und einen
+              Text-Abgleich. Funktioniert nicht bei jedem Anbieter.</span
+            ></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="autoRejectCookies" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Website-Blocker</h2>
+          <span class="switch"
+            ><input type="checkbox" data-key="blockEnabled" /><span
+              class="slider"
+            ></span
+          ></span>
+        </div>
+        <p class="hint">
+          Gesperrte Seiten werden beim Aufruf auf eine Hinweisseite umgeleitet.
+          Dort lässt sich eine Seite bei Bedarf für 10 Minuten freischalten.
+        </p>
+
+        <form id="addForm" class="add">
+          <input
+            type="text"
+            id="addInput"
+            placeholder="z. B. instagram.com"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button type="submit" class="btn btn-primary">Hinzufügen</button>
+        </form>
+
+        <div class="quick" id="quickAdd">
+          <span>Schnell hinzufügen:</span>
+        </div>
+
+        <ul class="blocklist" id="blocklist"></ul>
+      </section>
+
+      <footer class="foot">
+        <span id="version"></span>
+        <a
+          href="https://github.com/FinnRu007/youtube-shorts-deaktivieren"
+          target="_blank"
+          rel="noopener"
+          >Quellcode auf GitHub</a
+        >
+      </footer>
+    </main>
+
+    <script src="../src/defaults.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

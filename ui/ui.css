@@ -1,0 +1,173 @@
+/* ============================================================
+   Gemeinsames Design für Popup, Optionen und Blockier-Seite
+   ============================================================ */
+
+:root {
+  --bg: #ffffff;
+  --bg-soft: #f4f6fb;
+  --bg-soft-2: #e9edf6;
+  --ink: #12141c;
+  --ink-soft: #5b6270;
+  --ink-faint: #8a909c;
+  --line: #e2e6ef;
+  --primary: #2a4ce0;
+  --primary-dark: #1b34a8;
+  --primary-tint: #edf0fd;
+  --danger: #c0392b;
+  --font: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171a21;
+    --bg-soft: #1f232d;
+    --bg-soft-2: #2a2f3b;
+    --ink: #f2f4f8;
+    --ink-soft: #a9b0bd;
+    --ink-faint: #7f8795;
+    --line: #333a47;
+    --primary: #6f8bff;
+    --primary-dark: #4d6bff;
+    --primary-tint: #23283a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 700;
+}
+
+a {
+  color: var(--primary);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand img {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+.brand .title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ---------- Umschalter (Toggle-Zeile) ---------- */
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.row:first-of-type {
+  border-top: none;
+}
+.row .label {
+  flex: 1;
+}
+.row .label b {
+  display: block;
+  font-weight: 600;
+}
+.row .label span {
+  display: block;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  margin-top: 2px;
+}
+
+.switch {
+  position: relative;
+  flex: none;
+  width: 42px;
+  height: 24px;
+  margin-top: 2px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.switch .slider {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-soft-2);
+  border-radius: 999px;
+  transition: background 0.15s ease;
+}
+.switch .slider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.switch input:checked + .slider {
+  background: var(--primary);
+}
+.switch input:checked + .slider::before {
+  transform: translateX(18px);
+}
+.switch input:focus-visible + .slider {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  padding: 9px 16px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.btn:hover {
+  background: var(--bg-soft);
+}
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+.btn-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink-soft);
+}
+.btn-ghost:hover {
+  background: var(--bg-soft);
+}

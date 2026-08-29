@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="ui.css" />
+    <link rel="stylesheet" href="blocked.css" />
+    <title>Seite blockiert</title>
+  </head>
+  <body>
+    <main class="blocked">
+      <div class="mark">
+        <img src="../icons/icon128.png" alt="" />
+      </div>
+      <h1>Diese Seite ist blockiert</h1>
+      <p class="domain" id="domain">…</p>
+      <p class="msg">
+        Du hast diese Website selbst gesperrt, um dich nicht ablenken zu lassen.
+      </p>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="unlock">
+          Für 10&nbsp;Minuten freischalten
+        </button>
+        <button class="btn" id="settings">Blockliste bearbeiten</button>
+      </div>
+
+      <button class="btn btn-ghost" id="back">Zurück zur vorherigen Seite</button>
+
+      <p class="note" id="note" hidden></p>
+    </main>
+
+    <script src="blocked.js"></script>
+  </body>
+</html>

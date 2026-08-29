@@ -1,0 +1,51 @@
+.blocked {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 12vh 24px 40px;
+  text-align: center;
+}
+
+.mark img {
+  width: 64px;
+  height: 64px;
+  opacity: 0.9;
+}
+
+.blocked h1 {
+  font-size: 22px;
+  margin: 18px 0 6px;
+}
+
+.domain {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary);
+  word-break: break-all;
+  margin: 0 0 14px;
+}
+
+.msg {
+  color: var(--ink-soft);
+  margin: 0 0 24px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.actions .btn {
+  width: 100%;
+}
+
+#back {
+  width: 100%;
+  margin-top: 2px;
+}
+
+.note {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}

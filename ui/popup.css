@@ -1,0 +1,35 @@
+.popup {
+  width: 320px;
+  padding: 16px 16px 12px;
+}
+
+.popup .brand {
+  margin-bottom: 10px;
+}
+
+.popup .rows {
+  margin: 4px 0 14px;
+}
+
+.popup .btn {
+  width: 100%;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+
+.saved {
+  color: var(--primary);
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.saved.show {
+  opacity: 1;
+}

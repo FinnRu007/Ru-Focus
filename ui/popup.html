@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="ui.css" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>YouTube Shorts deaktivieren</title>
+  </head>
+  <body>
+    <div class="popup">
+      <div class="brand">
+        <img src="../icons/icon48.png" alt="" />
+        <span class="title">YouTube Shorts deaktivieren</span>
+      </div>
+
+      <div class="rows">
+        <label class="row">
+          <span class="label"
+            ><b>Shorts ausblenden</b
+            ><span>Shorts-Regale und Shorts in Listen entfernen</span></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="hideShorts" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+
+        <label class="row">
+          <span class="label"
+            ><b>Shorts-Links umleiten</b
+            ><span>/shorts/… als normales Video öffnen</span></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="redirectShorts" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+
+        <label class="row">
+          <span class="label"
+            ><b>Playables ausblenden</b><span>YouTube-Spiele nicht anzeigen</span></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="hidePlayables" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+
+        <label class="row">
+          <span class="label"
+            ><b>Umfragen ausblenden</b
+            ><span>Umfragen, Feedback- und Hinweis-Einblendungen</span></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="hideSurveys" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+
+        <label class="row">
+          <span class="label"
+            ><b>Cookie-Banner ablehnen</b
+            ><span>Optionale Cookies automatisch ablehnen</span></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="autoRejectCookies" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+
+        <label class="row">
+          <span class="label"
+            ><b>Website-Blocker</b
+            ><span>Gesperrte Seiten blockieren</span></span
+          >
+          <span class="switch"
+            ><input type="checkbox" data-key="blockEnabled" /><span
+              class="slider"
+            ></span
+          ></span>
+        </label>
+      </div>
+
+      <button class="btn" id="openOptions">Blockierte Websites verwalten …</button>
+
+      <div class="foot">
+        <span id="saved" class="saved">Gespeichert</span>
+        <span id="version"></span>
+      </div>
+    </div>
+
+    <script src="../src/defaults.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+# Build-Artefakte / Pakete
+*.zip
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
