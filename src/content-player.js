@@ -11,7 +11,9 @@
   "use strict";
 
   var LOG = "[YTSD]";
-  console.log(LOG, "Wiedergabe-Script aktiv auf", location.pathname);
+  // Diagnose-Ausgaben nur als console.debug (blenden sich standardmäßig aus,
+  // sichtbar über die Log-Stufe "Verbose" in den DevTools).
+  console.debug(LOG, "Wiedergabe-Script aktiv auf", location.pathname);
 
   var D = typeof YTSD_DEFAULTS !== "undefined" ? YTSD_DEFAULTS : {};
   var settings = Object.assign({}, D);
@@ -36,13 +38,7 @@
 
   chrome.storage.sync.get(D, function (res) {
     settings = Object.assign({}, D, res);
-    console.log(
-      LOG,
-      "Einstellungen geladen – Dislikes:",
-      settings.showDislikes,
-      "| Auto-Übersetzung aus:",
-      settings.disableAutoTranslate
-    );
+    console.debug(LOG, "Einstellungen geladen", settings);
     pushToMain();
     tick();
   });
@@ -105,15 +101,15 @@
       try {
         chrome.runtime.sendMessage({ type: "ryd", videoId: v }, function (resp) {
           if (chrome.runtime.lastError) {
-            console.warn(LOG, "Dislike-Abruf fehlgeschlagen:", chrome.runtime.lastError.message);
+            console.debug(LOG, "Dislike-Abruf:", chrome.runtime.lastError.message);
           }
           dislikeCount[v] =
             resp && typeof resp.dislikes === "number" ? resp.dislikes : null;
-          console.log(LOG, "Dislikes für", v, "=", dislikeCount[v]);
+          console.debug(LOG, "Dislikes für", v, "=", dislikeCount[v]);
           if (currentVideoId() === v) renderDislikes(v);
         });
       } catch (e) {
-        console.warn(LOG, "sendMessage-Fehler:", e);
+        console.debug(LOG, "sendMessage-Fehler:", e);
       }
       return;
     }
@@ -165,7 +161,7 @@
 
     if (!anchor || !anchor.parentElement) {
       if (!renderDislikes._warned) {
-        console.warn(LOG, "Dislike-Bereich (noch) nicht gefunden – versuche es weiter");
+        console.debug(LOG, "Dislike-Bereich noch nicht da – versuche es weiter");
         renderDislikes._warned = true;
       }
       return;
@@ -192,18 +188,7 @@
     if (anchor.nextElementSibling !== txt) {
       anchor.insertAdjacentElement("afterend", txt);
     }
-
-    var cs = window.getComputedStyle(txt);
-    console.log(
-      LOG,
-      "Dislike-Zahl eingeblendet:",
-      label,
-      "| display=" + cs.display,
-      "visibility=" + cs.visibility,
-      "fontSize=" + cs.fontSize,
-      "imDOM=" + document.contains(txt),
-      "anker=" + anchor.tagName.toLowerCase()
-    );
+    console.debug(LOG, "Dislike-Zahl eingeblendet:", label);
   }
 
   /* ---------- übersetzten Titel zurücksetzen ---------- */
